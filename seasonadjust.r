@@ -106,6 +106,7 @@ plot(seasonal_difference)
 
 ## Pruebas de estacionariedad
 ### Dickey fuller aumentada ADF
+
 #### Testeando serie original
 adf.test(db_ts, k = 12)# p-value > .05, no rechazas H0, no es estacionaria
 pp.test(db_ts)  # p-value < .05, rechazas H0, es estacionaria?
