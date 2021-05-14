@@ -12,10 +12,8 @@ source("script.r")
 
 # Dependencias para datos
 library("lubridate")
-library("seasonal")
-library("aTSA")
-library("tseries")
 library("forecast")
+library("tseries")
 
 # importar fonts (usar una vez)
 font_import()
@@ -48,8 +46,7 @@ db_ts <- ts(db$datos, start = c(1993, 1), frequency = 12)
 plot(decompose(db_ts),
     xlab = "Año",
     cex.lab = 0.58,
-    cex.axis = 0.92,
-    main = NULL)
+    cex.axis = 0.92)
 
 #######ggseas (misma grafica pero en ggplot)
 ggsdc(data = db, aes(x = periodos, y = datos),
@@ -184,3 +181,32 @@ autoplot(snaive_forecast) +
     labs(y = "IMAI", x = "Año", title = NULL) +
     theme_cowplot(12, "Times New Roman") +
     theme(legend.position = "none")
+
+#Holt Winter model
+n_training <- 311 + 13
+training_set_hw <- head(db_ts, n_training)
+test_set_hw <- tail(db_ts, n_test)
+
+hw_forecast <- hw(training_set_hw, seasonal = "multiplicative")
+
+hw_forecast <- forecast(hw_forecast, h = 13)
+
+autoplot(hw_forecast) + autolayer(test_set_hw)
+
+
+#ARIMA model
+arima_forecast <- arima(training_set_hw, order = c(2, 1, 2))
+
+arima_forecast <- forecast(arima_forecast, h = 13)
+autoplot(arima_forecast) + autolayer(test_set_hw)
+
+#Diebold-Mariano test
+
+###Modelos basicos
+snf_res <- na.omit(snaive_forecast$residuals)
+nf_res <- na.omit(naive_forecast$residuals)
+meanf_res <- na.omit(mean_forecast$residuals)
+
+hwf_res <- tail(hw_forecast$residuals, 299)
+
+dm.test(hwf_res, snf_res, h = 1, alternative = "greater")
